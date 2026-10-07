@@ -1,0 +1,839 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>The Awakened Script — MOTION-HARNESS</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08080B; }
+      #root {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background: #08080B; color: #F4F4F6;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+      #cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 540px; }
+      .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      svg.layer { display: block; }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+      /* ───────── Beat 1 : the prompt bar ───────── */
+      #bar {
+        position: absolute; left: 410px; top: 420px; width: 1100px; height: 132px;
+        border-radius: 34px; background: #141418; border: 1px solid #2A2A33;
+        box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(139,92,246,.16), 0 0 70px rgba(139,92,246,.10);
+        display: flex; align-items: center; padding: 0 24px 0 44px; gap: 24px;
+      }
+      #chev { flex: none; }
+      #typewrap { display: flex; align-items: center; flex: 1; }
+      #typed { display: block; overflow: hidden; white-space: nowrap; font-size: 40px; color: #F4F4F6; width: 0ch; }
+      #caret { display: block; width: 3px; height: 50px; margin-left: 6px; background: #8B5CF6; border-radius: 2px; }
+      #submit {
+        width: 84px; height: 84px; border-radius: 24px; background: #8B5CF6;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 0 0 rgba(139,92,246,.0), 0 12px 30px rgba(139,92,246,.35);
+      }
+      #ripple {
+        position: absolute; left: 1402px; top: 444px; width: 84px; height: 84px; border-radius: 50%;
+        border: 3px solid #8B5CF6; opacity: 0;
+      }
+      #ptr { position: absolute; left: 0; top: 0; }
+
+      /* ───────── Beat 3 : loot chips ───────── */
+      .chip {
+        position: absolute; left: 96px; height: 62px; padding: 0 28px 0 20px; border-radius: 16px;
+        background: #141418; border: 1px solid #2A2A33; display: flex; align-items: center; gap: 16px;
+        box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      }
+      .chip i { display: block; width: 14px; height: 14px; background: #10B981; transform: rotate(45deg); border-radius: 2px; }
+      .chip span { font-size: 26px; color: #F4F4F6; letter-spacing: .01em; }
+
+      /* ───────── Beat 4 : Jev gate HUD ───────── */
+      #hudCard {
+        position: absolute; left: 1090px; top: 112px; width: 740px; height: 340px; border-radius: 22px;
+        background: #141418; border: 1px solid rgba(16,185,129,.55);
+        box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(16,185,129,.12);
+        padding: 30px 38px;
+      }
+      .hrow { position: absolute; left: 38px; display: flex; align-items: center; gap: 20px; }
+      .hrow span { font-size: 27px; color: #F4F4F6; white-space: nowrap; }
+      #hudT { font-size: 22px !important; letter-spacing: .22em; color: #10B981 !important; }
+      .hline { position: absolute; left: 38px; right: 38px; top: 86px; height: 1px; background: #2A2A33; }
+      .hchk { width: 30px; height: 30px; flex: none; }
+
+      /* ───────── Beat 5 : lockup ───────── */
+      #title {
+        position: absolute; left: 0; top: 520px; width: 1920px; text-align: center;
+        font-size: 118px; line-height: 130px; font-weight: 600; letter-spacing: .16em; color: #F4F4F6;
+        padding-left: .16em; white-space: nowrap;
+      }
+      #sub {
+        position: absolute; left: 0; top: 716px; width: 1920px; text-align: center;
+        font-size: 34px; letter-spacing: .2em; color: #10B981; white-space: nowrap;
+      }
+      #badge {
+        position: absolute; left: 560px; top: 806px; width: 800px; height: 60px; border-radius: 30px;
+        background: #141418; border: 1px solid #2A2A33; display: flex; align-items: center; justify-content: center;
+      }
+      #badgeText { font-size: 24px; letter-spacing: .06em; color: #A8A8B3; white-space: nowrap; }
+      #term { position: absolute; left: 0; top: 960px; width: 1920px; height: 44px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+      #prompt { flex: none; }
+      #cur { display: block; width: 18px; height: 34px; background: #10B981; border-radius: 2px; }
+
+      #flash { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #F4F4F6; opacity: 0; z-index: 90; }
+
+      .sh { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 34px; text-anchor: middle; dominant-baseline: central; }
+      .rg { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; text-anchor: middle; dominant-baseline: central; }
+      .tk { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; fill: #C8C8D2; }
+      .ml { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 22px; fill: #F4F4F6; text-anchor: middle; }
+      .lg { stroke: #8B5CF6; stroke-opacity: .5; stroke-linecap: round; fill: none; }
+      .lc { stroke: #F4F4F6; stroke-linecap: round; fill: none; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="cam">
+
+        <!-- ═════════ Persistent obsidian void ═════════ -->
+        <svg id="bgfx" class="clip layer" data-start="0" data-duration="20" data-track-index="0" viewBox="0 0 1920 1080" style="z-index:0" aria-hidden="true">
+          <defs>
+            <pattern id="gridPat" width="120" height="120" patternUnits="userSpaceOnUse">
+              <path d="M120 0H0V120" fill="none" stroke="#F4F4F6" stroke-opacity=".035" stroke-width="1"/>
+            </pattern>
+            <radialGradient id="vig" cx="50%" cy="50%" r="75%">
+              <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000" stop-opacity=".7"/>
+            </radialGradient>
+          </defs>
+          <rect width="1920" height="1080" fill="#08080B"/>
+          <rect width="1920" height="1080" fill="url(#gridPat)"/>
+          <rect id="wash" width="1920" height="1080" fill="#10B981" opacity="0"/>
+          <rect width="1920" height="1080" fill="url(#vig)"/>
+        </svg>
+
+        <!-- ═════════ BEAT 1 · The Minimalist Prelude ═════════ -->
+        <div id="s1" class="clip" data-start="0" data-duration="2.9" data-track-index="1" style="z-index:10">
+          <div id="bar">
+            <svg id="chev" width="26" height="44" viewBox="0 0 26 44" fill="none" stroke="#8B5CF6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l15 16L5 38"/></svg>
+            <div id="typewrap"><span id="typed" class="mono" data-layout-allow-overflow data-layout-allow-overlap>motion-harness create demo video...</span><i id="caret"></i></div>
+            <div id="submit">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none" stroke="#F4F4F6" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 31V8M8 18l11-11 11 11"/></svg>
+            </div>
+          </div>
+          <div id="ripple"></div>
+          <svg id="ptr" width="40" height="44" viewBox="0 0 40 44" aria-hidden="true">
+            <path d="M4 2 L4 32 L12 25 L18 38 L24 35 L18 23 L29 23 Z" fill="#F4F4F6" stroke="#08080B" stroke-width="2.2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- glyph shards born from the shattered bar -->
+        <svg id="shards" data-layout-allow-overlap data-layout-allow-overflow class="clip layer" data-start="2.4" data-duration="1.8" data-track-index="2" viewBox="0 0 1920 1080" style="z-index:12" aria-hidden="true">
+          <rect id="slash" x="200" y="484" width="1520" height="4" fill="#F4F4F6" opacity="0"/>
+          <g id="shardG" data-layout-allow-overlap data-layout-allow-overflow></g>
+        </svg>
+
+        <!-- ═════════ BEAT 2 · The Cybernetic Awakening ═════════ -->
+        <svg id="s2" data-layout-allow-overflow class="clip layer" data-start="3.0" data-duration="2.7" data-track-index="3" viewBox="0 0 1920 1080" style="z-index:11" aria-hidden="true">
+          <defs>
+            <clipPath id="almondClip"><path d="M340 540 C600 180 1320 180 1580 540 C1320 900 600 900 340 540 Z"/></clipPath>
+          </defs>
+          <line id="lash" x1="340" y1="540" x2="1580" y2="540" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" opacity="0"/>
+          <g id="eyeG" opacity="0">
+            <path d="M340 540 C600 180 1320 180 1580 540 C1320 900 600 900 340 540 Z" fill="#0A0A0F"/>
+            <g clip-path="url(#almondClip)">
+              <g id="ringsHost"></g>
+              <circle cx="960" cy="540" r="98" fill="#0C0C12" stroke="#8B5CF6" stroke-width="2"/>
+              <g id="irisTicks"></g>
+            </g>
+            <path d="M340 540 C600 180 1320 180 1580 540 C1320 900 600 900 340 540 Z" fill="none" stroke="#8B5CF6" stroke-width="3.5" stroke-linejoin="round"/>
+            <g id="pupilG">
+              <circle r="56" fill="#050507" stroke="#F4F4F6" stroke-width="1.5"/>
+              <circle id="pupilCore" r="24" fill="#F4F4F6" opacity="0"/>
+            </g>
+          </g>
+          <circle id="eyeFlash" cx="960" cy="540" r="40" fill="none" stroke="#8B5CF6" stroke-width="6" opacity="0"/>
+        </svg>
+
+        <!-- ═════════ BEAT 3/4 · The world: timeline track, monoliths, slop, pad ═════════ -->
+        <svg id="world" data-layout-allow-overflow class="clip layer" data-start="5.3" data-duration="9.7" data-track-index="4" viewBox="0 0 1920 1080" style="z-index:20" aria-hidden="true">
+          <rect id="nleBg" x="0" y="834" width="1920" height="246" fill="#0B0B0F"/>
+          <g id="w"></g>
+          <line x1="640" y1="834" x2="640" y2="1080" stroke="#8B5CF6" stroke-width="2"/>
+          <polygon points="626,820 654,820 640,842" fill="#8B5CF6"/>
+        </svg>
+
+        <svg id="streaks" data-layout-allow-overflow class="clip layer" data-start="5.5" data-duration="9.5" data-track-index="5" viewBox="0 0 1920 1080" style="z-index:28" aria-hidden="true">
+          <g id="streakG" data-layout-allow-overflow></g>
+        </svg>
+
+        <!-- The Runner -->
+        <svg id="actors" data-layout-allow-overflow class="clip layer" data-start="4.6" data-duration="10.4" data-track-index="6" viewBox="0 0 1920 1080" style="z-index:30" aria-hidden="true">
+          <defs>
+            <radialGradient id="auraVg"><stop offset="0%" stop-color="#8B5CF6" stop-opacity=".55"/><stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/></radialGradient>
+            <radialGradient id="auraEg"><stop offset="0%" stop-color="#10B981" stop-opacity=".5"/><stop offset="100%" stop-color="#10B981" stop-opacity="0"/></radialGradient>
+          </defs>
+        </svg>
+
+        <!-- screen-space effects: orbs, scan, letterbox, shock rings -->
+        <svg id="fx" data-layout-allow-overflow class="clip layer" data-start="5.3" data-duration="9.7" data-track-index="7" viewBox="0 0 1920 1080" style="z-index:36" aria-hidden="true">
+          <defs>
+            <linearGradient id="scanGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#10B981" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#10B981" stop-opacity=".34"/>
+            </linearGradient>
+          </defs>
+          <g id="glitchG"></g>
+          <rect id="slideTrail" x="300" y="822" width="340" height="5" rx="2.5" fill="#F4F4F6" opacity="0"/>
+          <g id="orb1"><circle r="13" fill="#10B981"/><circle r="24" fill="none" stroke="#10B981" stroke-width="2"/></g>
+          <g id="orb2"><circle r="13" fill="#10B981"/><circle r="24" fill="none" stroke="#10B981" stroke-width="2"/></g>
+          <g id="orb3"><circle r="13" fill="#10B981"/><circle r="24" fill="none" stroke="#10B981" stroke-width="2"/></g>
+          <circle id="abs1" r="30" fill="none" stroke="#10B981" stroke-width="4" opacity="0"/>
+          <circle id="abs2" r="30" fill="none" stroke="#10B981" stroke-width="4" opacity="0"/>
+          <circle id="abs3" r="30" fill="none" stroke="#10B981" stroke-width="4" opacity="0"/>
+          <circle id="bt1" r="40" fill="none" stroke="#10B981" stroke-width="4" opacity="0"/>
+          <circle id="bt2" r="40" fill="none" stroke="#F4F4F6" stroke-width="2" opacity="0"/>
+          <g id="scan">
+            <rect x="-170" y="0" width="170" height="1080" fill="url(#scanGrad)"/>
+            <rect x="0" y="0" width="5" height="1080" fill="#10B981"/>
+            <rect x="-2" y="0" width="9" height="1080" fill="#F4F4F6" opacity=".55"/>
+          </g>
+          <ellipse id="shock1" cx="660" cy="826" rx="40" ry="9" fill="none" stroke="#10B981" stroke-width="3" opacity="0"/>
+          <ellipse id="shock2" cx="660" cy="826" rx="40" ry="9" fill="none" stroke="#F4F4F6" stroke-width="2" opacity="0"/>
+          <rect id="lbT" x="0" y="-76" width="1920" height="76" fill="#000"/>
+          <rect id="lbB" x="0" y="1080" width="1920" height="76" fill="#000"/>
+        </svg>
+
+        <!-- ═════════ BEAT 5 · Apex Transcendence & Luxury Lockup ═════════ -->
+        <div id="s5" class="clip" data-start="14.95" data-duration="5.05" data-track-index="10" style="z-index:15">
+          <svg id="crystalSvg" class="layer" width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute;left:0;top:0" aria-hidden="true">
+            <defs>
+              <clipPath id="crystalClip"><polygon points="0,-150 100,0 0,150 -100,0"/></clipPath>
+            </defs>
+            <g id="corners" fill="none" stroke="#F4F4F6" stroke-opacity=".35" stroke-width="2">
+              <path d="M72 140V72H140"/><path d="M1780 72H1848V140"/><path d="M72 940V1008H140"/><path d="M1780 1008H1848V940"/>
+            </g>
+            <line id="hair" x1="360" y1="686" x2="1560" y2="686" stroke="#2F2F3A" stroke-width="2"/>
+            <g id="crystal">
+              <polygon class="facet" points="0,-150 -100,0 -45,0 0,-62" fill="#8B5CF6" fill-opacity=".34"/>
+              <polygon class="facet" points="0,-150 100,0 45,0 0,-62" fill="#8B5CF6" fill-opacity=".16"/>
+              <polygon class="facet" points="0,150 100,0 45,0 0,62" fill="#10B981" fill-opacity=".30"/>
+              <polygon class="facet" points="0,150 -100,0 -45,0 0,62" fill="#10B981" fill-opacity=".13"/>
+              <polygon class="facet" points="0,0 0,-62 45,0" fill="#F4F4F6" fill-opacity=".13"/>
+              <polygon class="facet" points="0,0 45,0 0,62" fill="#F4F4F6" fill-opacity=".05"/>
+              <polygon class="facet" points="0,0 0,62 -45,0" fill="#F4F4F6" fill-opacity=".10"/>
+              <polygon class="facet" points="0,0 -45,0 0,-62" fill="#F4F4F6" fill-opacity=".04"/>
+              <g clip-path="url(#crystalClip)"><polygon id="shine" points="-40,-170 10,-170 70,170 20,170" fill="#F4F4F6" fill-opacity=".34" opacity="0"/></g>
+              <polygon class="cedge" pathLength="1" stroke-dasharray="1" points="0,-150 100,0 0,150 -100,0" fill="none" stroke="#F4F4F6" stroke-width="2.6" stroke-linejoin="round"/>
+              <polyline class="cedge" pathLength="1" stroke-dasharray="1" points="0,-62 45,0 0,62 -45,0 0,-62" fill="none" stroke="#F4F4F6" stroke-opacity=".8" stroke-width="1.6" stroke-linejoin="round"/>
+              <line class="cedge" pathLength="1" stroke-dasharray="1" x1="-100" y1="0" x2="100" y2="0" stroke="#F4F4F6" stroke-opacity=".55" stroke-width="1.4"/>
+              <line class="cedge" pathLength="1" stroke-dasharray="1" x1="0" y1="-150" x2="0" y2="150" stroke="#F4F4F6" stroke-opacity=".55" stroke-width="1.4"/>
+            </g>
+          </svg>
+          <h1 id="title">MOTION-HARNESS</h1>
+          <p id="sub" class="mono">// JEV-POWERED COGNITIVE PRODUCTION</p>
+          <div id="badge"><span id="badgeText">Automated QA • Zero Slop • Deterministic Velocity</span></div>
+          <div id="term"><svg id="prompt" width="20" height="34" viewBox="0 0 26 44" fill="none" stroke="#A8A8B3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l15 16L5 38"/></svg><i id="cur"></i></div>
+        </div>
+
+        
+      </div>
+
+        <!-- UI overlays sit above the camera -->
+        <!-- skill loot chips -->
+        <div id="chips" class="clip" data-start="6.5" data-duration="5.0" data-track-index="8" style="z-index:40">
+          <div class="chip" id="chipbox1" style="top:96px"><i></i><span id="chip1" class="mono">video-director</span></div>
+          <div class="chip" id="chipbox2" style="top:174px"><i></i><span id="chip2" class="mono">motion-design</span></div>
+          <div class="chip" id="chipbox3" style="top:252px"><i></i><span id="chip3" class="mono">HyperFrames</span></div>
+        </div>
+        <!-- Jev Cognitive Gate HUD -->
+        <div id="hud" class="clip" data-start="11.5" data-duration="3.45" data-track-index="9" style="z-index:40">
+          <div id="hudCard">
+            <div class="hrow" style="top:30px"><span id="hudT" class="mono">JEV COGNITIVE GATE</span></div>
+            <div class="hline"></div>
+            <div class="hrow" style="top:114px"><svg class="hchk" viewBox="0 0 30 30" fill="none" stroke="#10B981" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="15" r="13" stroke-opacity=".45"/><path d="M8.5 15.5l4.5 4.5 8.5-9.5"/></svg><span id="hud1" class="mono">Readability: Verified</span></div>
+            <div class="hrow" style="top:184px"><svg class="hchk" viewBox="0 0 30 30" fill="none" stroke="#10B981" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="15" r="13" stroke-opacity=".45"/><path d="M8.5 15.5l4.5 4.5 8.5-9.5"/></svg><span id="hud2" class="mono">Token Waste: -97% Saved ($0.042/1M)</span></div>
+            <div class="hrow" style="top:254px"><svg class="hchk" viewBox="0 0 30 30" fill="none" stroke="#10B981" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="15" r="13" stroke-opacity=".45"/><path d="M8.5 15.5l4.5 4.5 8.5-9.5"/></svg><span id="hud3" class="mono">Zero Slop Confirmed</span></div>
+          </div>
+        </div>
+        <div id="flash"></div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        /* ────────────────────────────────────────────────────────────
+           THE AWAKENED SCRIPT — 20s · 1920×1080 · fully deterministic
+           ──────────────────────────────────────────────────────────── */
+        var NS = "http://www.w3.org/2000/svg";
+        var GROUND = 828, RY = 690, RS = 796, SC = 1.6, RX = 640, WC = 7810;
+
+        // seeded PRNG (mulberry32) — same output on every render
+        function rng(a) {
+          return function () {
+            a |= 0; a = a + 0x6D2B79F5 | 0;
+            var t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+          };
+        }
+        function mk(tag, at, par) {
+          var e = document.createElementNS(NS, tag);
+          for (var k in at) e.setAttribute(k, at[k]);
+          if (par) par.appendChild(e);
+          return e;
+        }
+        function q(s) { return document.querySelector(s); }
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        var pw2out = gsap.parseEase("power2.out"), pw1in = gsap.parseEase("power1.in"),
+            pw3in = gsap.parseEase("power3.in"), pw2io = gsap.parseEase("power2.inOut");
+        // accelerating sprint profile: starts at 0.4x avg speed, ends at 1.6x
+        function e3(p) { return 0.4 * p + 0.6 * p * p; }
+
+        // world scroll position at time t (mirrors the world tweens below)
+        function X(t) {
+          if (t <= 5.5) return 0;
+          if (t < 10) return -5400 * e3((t - 5.5) / 4.5);
+          if (t < 11.5) return -5400 - 1150 * pw2out((t - 10) / 1.5);
+          if (t < 14) return -6550 - 590 * pw1in((t - 11.5) / 2.5);
+          if (t < 14.95) return -7140 - 5000 * pw3in((t - 14) / 0.95);
+          return -12140;
+        }
+        function crossT(W, sx) {
+          var lo = 5.5, hi = 14.9;
+          for (var i = 0; i < 60; i++) { var m = (lo + hi) / 2; if (W + X(m) > sx) lo = m; else hi = m; }
+          return hi;
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        // wrap each long-lived layer so its content can be retired at the Beat 5 hand-off
+        ["world", "streaks", "actors", "fx"].forEach(function (id) {
+          var s = q("#" + id), g = mk("g", { id: id + "Box" });
+          while (s.firstChild) g.appendChild(s.firstChild);
+          s.appendChild(g);
+        });
+
+        gsap.set("#cam", { transformOrigin: "960px 540px" });
+
+        /* ═══════════════════ BEAT 1 · 0.0 – 2.8 ═══════════════════ */
+        gsap.set("#bar", { opacity: 0, y: 70, scale: 0.96 });
+        gsap.set("#chev", { opacity: 0 });
+        gsap.set("#caret", { opacity: 0 });
+        gsap.set("#ptr", { x: 1700, y: 930, opacity: 0, scale: 1, transformOrigin: "4px 2px" });
+
+        tl.to("#bar", { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" }, 0);
+        tl.fromTo("#chev", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.2);
+        tl.to("#caret", { opacity: 1, duration: 0.2, ease: "power2.out" }, 0.3);
+        tl.fromTo("#typed", { width: "0ch" }, { width: "35ch", duration: 0.8, ease: "steps(35)" }, 0.25);
+        // caret blink once typing has settled
+        tl.set("#caret", { opacity: 0 }, 1.3);
+        tl.set("#caret", { opacity: 1 }, 1.58);
+        tl.set("#caret", { opacity: 0 }, 1.86);
+        tl.set("#caret", { opacity: 1 }, 2.14);
+
+        // cursor glides in on an arc, hovers, clicks
+        tl.to("#ptr", { opacity: 1, duration: 0.25, ease: "power2.out" }, 0.7);
+        tl.to("#ptr", { x: 1448, duration: 1.05, ease: "power3.inOut" }, 0.7);
+        tl.to("#ptr", { y: 492, duration: 1.05, ease: "power2.out" }, 0.7);
+        tl.to("#submit", { scale: 1.08, boxShadow: "0 0 0 8px rgba(139,92,246,.28), 0 12px 40px rgba(139,92,246,.6)", duration: 0.28, ease: "power3.out" }, 1.78);
+        tl.to("#ptr", { x: 1454, y: 498, duration: 0.5, ease: "sine.inOut" }, 1.8);
+        tl.to("#ptr", { scale: 0.8, duration: 0.07, ease: "power2.in" }, 2.3);
+        tl.to("#submit", { scale: 0.92, duration: 0.07, ease: "power2.in" }, 2.3);
+        tl.to("#ptr", { scale: 1, duration: 0.16, ease: "back.out(2)" }, 2.38);
+        tl.fromTo("#ripple", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 7, duration: 0.6, ease: "expo.out", immediateRender: false }, 2.32);
+        tl.to("#ptr", { opacity: 0, duration: 0.14, ease: "power2.in" }, 2.5);
+
+        // THE TURN — click shatters the bar
+        tl.to("#bar", { scale: 1.04, duration: 0.08, ease: "power2.out" }, 2.45);
+        tl.to("#bar", { opacity: 0, scaleY: 0.06, scaleX: 1.3, duration: 0.22, ease: "power3.in" }, 2.53);
+        tl.to("#typed", { opacity: 0, duration: 0.14, ease: "power3.in" }, 2.55);
+
+        // shards
+        var shardG = q("#shardG"), r1 = rng(7);
+        var GL = ["{", "}", "<", ">", "/", "0", "1", ";", "=", "(", ")", "[", "]", "#", "$", "*", "&", "%"];
+        var SCOL = ["#8B5CF6", "#F4F4F6", "#8B5CF6", "#A78BFA", "#F4F4F6", "#10B981"];
+        gsap.set("#slash", { svgOrigin: "960 486", scaleX: 0 });
+        tl.to("#slash", { opacity: 1, scaleX: 1, duration: 0.22, ease: "expo.out" }, 2.45);
+        tl.to("#slash", { opacity: 0, duration: 0.18, ease: "power2.in" }, 2.68);
+        var i, shardEls = [];
+        for (i = 0; i < 72; i++) {
+          var col = i % 18, row = Math.floor(i / 18);
+          var x0 = 478 + col * (900 / 17), y0 = 452 + row * 28;
+          var ang = Math.atan2(y0 - 486, x0 - 960) + (r1() - 0.5) * 0.7;
+          var dist = 220 + r1() * 480;
+          var x1 = clamp(x0 + Math.cos(ang) * dist, 70, 1850), y1 = clamp(y0 + Math.sin(ang) * dist * 0.8 + (r1() - 0.5) * 140, 70, 1010);
+          var rot = (r1() - 0.5) * 720, sc = 0.8 + r1() * 1.1;
+          var tx = 380 + i / 71 * 1160;
+          var t = mk("text", { class: "sh", "data-layout-allow-overlap": "", "data-layout-allow-overflow": "", fill: SCOL[i % SCOL.length] }, shardG);
+          t.textContent = GL[(i * 7 + 3) % GL.length];
+          gsap.set(t, { x: x0, y: y0, opacity: 0, transformOrigin: "0 0" });
+          var ts = 2.45 + i * 0.004;
+          tl.to(t, { x: x1, y: y1, opacity: 1, rotation: rot, scale: sc, duration: 0.6, ease: "expo.out" }, ts);
+          tl.to(t, { x: tx, y: 540, rotation: 0, scale: 0.5, duration: 0.8, ease: "power3.inOut" }, 3.15 + (i % 12) * 0.02);
+          tl.to(t, { opacity: 0, duration: 0.15, ease: "power2.in" }, 3.98);
+        }
+        for (i = 0; i < 18; i++) {
+          var fx0 = 520 + r1() * 880, fy0 = 456 + r1() * 60;
+          var fa = Math.atan2(fy0 - 486, fx0 - 960) + (r1() - 0.5);
+          var fd = 300 + r1() * 560;
+          var f = mk("path", { d: "M-16 -9 L16 0 L-7 11 Z", fill: "none", stroke: (i % 3 === 0 ? "#10B981" : "#8B5CF6"), "stroke-width": 2.4, "stroke-linejoin": "round" }, shardG);
+          gsap.set(f, { x: fx0, y: fy0, opacity: 0, transformOrigin: "0 0" });
+          tl.to(f, { x: clamp(fx0 + Math.cos(fa) * fd, 70, 1850), y: clamp(fy0 + Math.sin(fa) * fd * 0.8, 70, 1010), opacity: 1, rotation: (r1() - 0.5) * 900, scale: 1 + r1(), duration: 0.65, ease: "expo.out" }, 2.46 + i * 0.006);
+          tl.to(f, { x: 400 + i * 64, y: 540, rotation: 0, scale: 0.55, duration: 0.8, ease: "power3.inOut" }, 3.15 + (i % 9) * 0.02);
+          tl.to(f, { opacity: 0, duration: 0.15, ease: "power2.in" }, 3.98);
+        }
+
+        /* ═══════════════════ BEAT 2 · 2.8 – 5.5 ═══════════════════ */
+        // eye construction
+        var ringsHost = q("#ringsHost"), rings = [], RAD = [118, 172, 226, 280], RC = ["#F4F4F6", "#8B5CF6", "#F4F4F6", "#8B5CF6"];
+        var ALPHA = "01{}<>/;=()[]#$*";
+        RAD.forEach(function (r, ri) {
+          var g = mk("g", { id: "rg" + ri }, ringsHost);
+          mk("circle", { cx: 960, cy: 540, r: r + 26, fill: "none", stroke: "#8B5CF6", "stroke-opacity": 0.22, "stroke-width": 1 }, g);
+          var n = Math.round(2 * Math.PI * r / 19);
+          for (var k = 0; k < n; k++) {
+            var tt = mk("text", { class: "rg", fill: RC[ri], "fill-opacity": ri % 2 ? 0.85 : 0.7, transform: "translate(960 540) rotate(" + (k * 360 / n).toFixed(2) + ") translate(0 " + (-r) + ")" }, g);
+            tt.textContent = ALPHA.charAt((k * 5 + ri * 3) % ALPHA.length);
+          }
+          rings.push(g);
+        });
+        var irisT = q("#irisTicks");
+        for (i = 0; i < 40; i++) {
+          var a = i * 9 * Math.PI / 180;
+          mk("line", { x1: 960 + Math.cos(a) * 66, y1: 540 + Math.sin(a) * 66, x2: 960 + Math.cos(a) * 92, y2: 540 + Math.sin(a) * 92, stroke: "#F4F4F6", "stroke-opacity": 0.4, "stroke-width": 1.6 }, irisT);
+        }
+        gsap.set("#eyeG", { svgOrigin: "960 540", scaleY: 0.02 });
+        gsap.set("#pupilG", { x: 960, y: 540, scale: 0.45, transformOrigin: "0 0" });
+        gsap.set("#pupilCore", { transformOrigin: "0 0", scale: 0.2 });
+        gsap.set("#eyeFlash", { svgOrigin: "960 540" });
+        gsap.set("#lash", { svgOrigin: "960 540" });
+
+        tl.to("#lash", { opacity: 1, duration: 0.3, ease: "power2.out" }, 3.7);
+        tl.set("#eyeG", { opacity: 1 }, 3.95);
+        tl.to("#eyeG", { scaleY: 0.04, duration: 0.35, ease: "sine.inOut" }, 3.95);
+        tl.to("#lash", { strokeWidth: 8, duration: 0.3, ease: "power2.in" }, 4.0);
+        // the lids snap open
+        tl.to("#eyeG", { scaleY: 1, duration: 0.5, ease: "back.out(1.3)" }, 4.3);
+        tl.to("#lash", { opacity: 0, duration: 0.14, ease: "power2.out" }, 4.32);
+        tl.fromTo("#eyeFlash", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 16, duration: 0.85, ease: "expo.out", immediateRender: false }, 4.3);
+        tl.to("#pupilG", { scale: 1.3, duration: 0.45, ease: "expo.out" }, 4.45);
+        tl.to("#pupilG", { scale: 1.12, duration: 0.5, ease: "power3.inOut" }, 4.9);
+        var spin = [-150, 120, -90, 70];
+        rings.forEach(function (g, ri) {
+          gsap.set(g, { svgOrigin: "960 540" });
+          tl.to(g, { rotation: spin[ri], duration: 1.3, ease: "power3.out" }, 4.3);
+        });
+        tl.to("#pupilCore", { opacity: 1, scale: 1.6, duration: 0.3, ease: "expo.out" }, 4.65);
+        gsap.set("#pupilCore", { opacity: 0 });
+        tl.to("#pupilCore", { opacity: 0, duration: 0.3, ease: "power2.in" }, 5.0);
+        // eye falls away as the Runner lands
+        tl.to("#eyeG", { scale: 1.4, opacity: 0, duration: 0.35, ease: "power3.in" }, 5.25);
+
+        // camera : anticipation, release, follow
+        tl.to("#cam", { scale: 1.035, duration: 0.4, ease: "power2.in" }, 3.9);
+        tl.to("#cam", { scale: 1, duration: 0.6, ease: "expo.out" }, 4.3);
+        tl.to("#cam", { scale: 1.07, y: 10, duration: 0.65, ease: "power2.inOut" }, 4.9);
+        tl.to("#cam", { scale: 1, y: 0, duration: 0.45, ease: "power3.out" }, 5.57);
+
+        /* ═══════════════════ THE RUNNER ═══════════════════ */
+        var act = q("#actorsBox");
+        function J(id, par, x, y, back) {
+          var g = mk("g", { id: "j_" + id }, par);
+          gsap.set(g, { x: x, y: y, rotation: 0, transformOrigin: "0 0" });
+          if (back) g.setAttribute("opacity", "0.62");
+          return g;
+        }
+        function seg(par, len, w) {
+          mk("line", { class: "lg", x1: 0, y1: 0, x2: 0, y2: len, "stroke-width": w + 8 }, par);
+          mk("line", { class: "lc", x1: 0, y1: 0, x2: 0, y2: len, "stroke-width": w }, par);
+        }
+        var runOuter = mk("g", { id: "runner" }, act);
+        var run = mk("g", { id: "runnerR" }, runOuter);
+        gsap.set(run, { x: 0, y: 0, rotation: 0, transformOrigin: "0 0" });
+        var aura = mk("g", { id: "auraG" }, run); gsap.set(aura, { x: 0, y: -70, transformOrigin: "0 0" });
+        mk("circle", { id: "auraV", r: 130, fill: "url(#auraVg)" }, aura);
+        mk("circle", { id: "auraE", r: 150, fill: "url(#auraEg)" }, aura);
+        gsap.set("#auraV", { opacity: 0.15, transformOrigin: "0 0" });
+        gsap.set("#auraE", { opacity: 0, transformOrigin: "0 0" });
+        var rt = J("rt", run, 0, 0, true); seg(rt, 44, 6.5);
+        var rs = J("rs", rt, 0, 44, true); seg(rs, 44, 6); mk("line", { class: "lc", x1: 0, y1: 44, x2: 14, y2: 44, "stroke-width": 5 }, rs);
+        var tor = J("tor", run, 0, 0);
+        var ru = J("ru", tor, 0, -52, true); seg(ru, 30, 5);
+        var rf = J("rf", ru, 0, 30, true); seg(rf, 28, 5);
+        mk("line", { class: "lc", x1: 0, y1: 0, x2: 0, y2: -60, "stroke-width": 10 }, tor);
+        mk("line", { class: "lg", x1: 0, y1: 0, x2: 0, y2: -60, "stroke-width": 18 }, tor);
+        var core = J("core", tor, 0, -32); mk("circle", { r: 8, fill: "#10B981" }, core);
+        var hd = J("hd", tor, 0, -60);
+        mk("circle", { cx: 0, cy: -22, r: 23, fill: "#8B5CF6", "fill-opacity": 0.35 }, hd);
+        mk("circle", { cx: 0, cy: -22, r: 14, fill: "#F4F4F6" }, hd);
+        var lu = J("lu", tor, 0, -52); seg(lu, 30, 5.5);
+        var lf = J("lf", lu, 0, 30); seg(lf, 28, 5.5);
+        var lt = J("lt", run, 0, 0); seg(lt, 44, 7);
+        var ls = J("ls", lt, 0, 44); seg(ls, 44, 6.5); mk("line", { class: "lc", x1: 0, y1: 44, x2: 14, y2: 44, "stroke-width": 5.5 }, ls);
+
+        var JOINTS = ["tor", "hd", "lt", "ls", "rt", "rs", "lu", "lf", "ru", "rf"];
+        var P = {
+          runA:  { tor: 16, hd: -8, lt: -55, ls: 20, rt: 38, rs: 98, lu: 50, lf: -85, ru: -60, rf: -95 },
+          runB:  { tor: 16, hd: -8, lt: 38, ls: 98, rt: -55, rs: 20, lu: -60, lf: -95, ru: 50, rf: -85 },
+          leap:  { tor: 35, hd: -12, lt: -100, ls: 105, rt: -65, rs: 115, lu: -125, lf: -35, ru: -145, rf: -25 },
+          take:  { tor: 22, hd: -8, lt: -75, ls: 35, rt: 42, rs: 85, lu: -105, lf: -55, ru: 25, rf: -40 },
+          vault: { tor: 34, hd: -14, lt: -102, ls: 8, rt: 58, rs: 125, lu: -155, lf: -12, ru: -170, rf: -8 },
+          slide: { tor: -72, hd: 18, lt: -82, ls: 4, rt: -72, rs: 18, lu: 62, lf: 24, ru: 78, rf: 12 },
+          tuck:  { tor: 58, hd: -20, lt: -112, ls: 125, rt: -98, rs: 128, lu: -62, lf: -125, ru: -74, rf: -112 },
+          land:  { tor: 20, hd: -8, lt: -48, ls: 28, rt: 30, rs: 70, lu: 35, lf: -60, ru: -45, rf: -70 },
+          crouch:{ tor: 40, hd: -18, lt: -78, ls: 125, rt: -50, rs: 118, lu: -70, lf: -95, ru: -30, rf: -100 },
+          dive:  { tor: 0, hd: -8, lt: 8, ls: 22, rt: 16, rs: 30, lu: -172, lf: -8, ru: -178, rf: -4 }
+        };
+        JOINTS.forEach(function (j) { gsap.set("#j_" + j, { rotation: P.leap[j] }); });
+        gsap.set("#runner", { x: 960, y: 540, scale: 0.06, opacity: 0, transformOrigin: "0 0" });
+
+        function pose(t, d, p, ease) {
+          JOINTS.forEach(function (j) { tl.to("#j_" + j, { rotation: p[j], duration: d, ease: ease || "power2.out" }, t); });
+        }
+        var flag = true;
+        function cycle(t0, t1, h0, h1) {
+          var ds = [], t = t0, k, sum = 0;
+          while (t < t1 - 0.02) { var h = lerp(h0, h1, (t - t0) / (t1 - t0)); ds.push(h); t += h; }
+          ds.forEach(function (d) { sum += d; });
+          k = (t1 - t0) / sum;
+          var s = t0;
+          ds.forEach(function (d) {
+            d *= k;
+            pose(s, d, flag ? P.runA : P.runB, "sine.inOut");
+            tl.to("#runner", { y: RY + 7, duration: d * 0.45, ease: "sine.out" }, s);
+            tl.to("#runner", { y: RY - 7, duration: d * 0.55, ease: "sine.in" }, s + d * 0.45);
+            s += d; flag = !flag;
+          });
+          return t1;
+        }
+
+        // —— the leap out of the pupil (4.75 – 5.6)
+        tl.to("#runner", { opacity: 1, duration: 0.1, ease: "power2.out" }, 4.75);
+        tl.to("#runner", { x: RX, duration: 0.85, ease: "power2.out" }, 4.75);
+        tl.to("#runner", { scale: SC, duration: 0.45, ease: "expo.out" }, 4.75);
+        tl.to("#runner", { y: 300, duration: 0.3, ease: "power2.out" }, 4.75);
+        tl.to("#runner", { y: RY, duration: 0.55, ease: "power2.in" }, 5.05);
+        tl.to("#runnerR", { rotation: 360, duration: 0.85, ease: "power2.inOut" }, 4.75);
+        tl.set("#runnerR", { rotation: 0 }, 5.61);
+        pose(5.3, 0.3, P.land, "power2.out");
+        // landing squash
+        tl.to("#runner", { scaleY: SC * 0.86, duration: 0.07, ease: "power2.out" }, 5.6);
+        tl.to("#runner", { scaleY: SC, duration: 0.2, ease: "back.out(2.2)" }, 5.67);
+        tl.to("#auraV", { opacity: 0.35, scale: 1.1, duration: 0.5, ease: "power3.out" }, 4.8);
+
+        /* ═══════════════════ BEAT 3 · 5.5 – 10.0 ═══════════════════ */
+        // the world
+        var Wg = q("#w"), rw = rng(5);
+        mk("rect", { x: -200, y: GROUND, width: 16000, height: 6, fill: "#2A2A33" }, Wg);
+        mk("rect", { x: -200, y: GROUND, width: 16000, height: 2, fill: "#F4F4F6", "fill-opacity": 0.2 }, Wg);
+        for (var x = 0; x <= 15600; x += 60) {
+          var big = x % 300 === 0;
+          mk("line", { x1: x, y1: 846, x2: x, y2: big ? 874 : 858, stroke: big ? "#4A4A56" : "#2A2A33", "stroke-width": 2 }, Wg);
+          if (big) { var lb = mk("text", { class: "tk", x: x + 8, y: 902 }, Wg); lb.textContent = "00:" + ("0" + (x / 300)).slice(-2); }
+        }
+        [924, 976, 1028].forEach(function (ry, row) {
+          var bx = -120 + row * 90;
+          while (bx < 15600) {
+            var bw = 140 + rw() * 380, hot = rw() < 0.26;
+            mk("rect", { x: bx, y: ry, width: bw, height: 40, rx: 8, fill: hot ? "#8B5CF6" : "#141418", "fill-opacity": hot ? 0.22 : 1, stroke: hot ? "#8B5CF6" : "#2A2A33", "stroke-opacity": hot ? 0.6 : 1, "stroke-width": 1.5 }, Wg);
+            bx += bw + 14 + rw() * 46;
+          }
+        });
+
+        // monoliths (world space)
+        var tc1 = 6.85, tc2 = 8.15, tc3 = 9.35;
+        var W1 = 660 - X(tc1), W2 = 660 - X(tc2), W3 = 660 - X(tc3);
+        function mono(id, wx) { var g = mk("g", { id: id }, Wg); gsap.set(g, { x: wx, y: GROUND, transformOrigin: "0 0" }); return g; }
+        function diamond(par, id, cy) {
+          var g = mk("g", { id: id }, par); gsap.set(g, { x: 0, y: cy, transformOrigin: "0 0" });
+          mk("circle", { r: 54, fill: "none", stroke: "#10B981", "stroke-opacity": 0.28, "stroke-width": 2 }, g);
+          mk("polygon", { points: "0,-36 36,0 0,36 -36,0", fill: "#0A0A0E", stroke: "#10B981", "stroke-width": 3 }, g);
+          return g;
+        }
+        // 01 · video-director — a low barrier with a floating core
+        var m1 = mono("m1", W1);
+        mk("rect", { x: -105, y: -130, width: 210, height: 130, fill: "#141418", stroke: "#34343F", "stroke-width": 2 }, m1);
+        mk("rect", { x: -105, y: -132, width: 210, height: 4, fill: "#8B5CF6" }, m1);
+        var t1 = mk("text", { class: "ml", x: 0, y: -58 }, m1); t1.textContent = "video-director";
+        mk("line", { x1: 0, y1: -236, x2: 0, y2: -134, stroke: "#10B981", "stroke-opacity": 0.35, "stroke-width": 2, "stroke-dasharray": "6 6" }, m1);
+        var c1 = diamond(m1, "m1core", -268);
+        mk("path", { d: "M-14 -3 h28 v18 h-28 z M-14 -3 l7 -13 h8 l-7 13 M2 -3 l7 -13 h8 l-7 13", fill: "none", stroke: "#10B981", "stroke-width": 2.4, "stroke-linejoin": "round" }, c1);
+        // 02 · motion-design — a hanging slab; the runner slides beneath
+        var m2 = mono("m2", W2);
+        mk("line", { x1: 0, y1: -828, x2: 0, y2: -300, stroke: "#34343F", "stroke-width": 2 }, m2);
+        mk("rect", { x: -125, y: -300, width: 250, height: 120, fill: "#141418", stroke: "#34343F", "stroke-width": 2 }, m2);
+        mk("rect", { x: -125, y: -182, width: 250, height: 4, fill: "#8B5CF6" }, m2);
+        var t2 = mk("text", { class: "ml", x: 0, y: -232 }, m2); t2.textContent = "motion-design";
+        var c2 = diamond(m2, "m2core", -150);
+        mk("path", { d: "M-16 8 C-8 -18 8 18 16 -8", fill: "none", stroke: "#10B981", "stroke-width": 2.6, "stroke-linecap": "round" }, c2);
+        // 03 · HyperFrames — a tall monolith
+        var m3 = mono("m3", W3);
+        var m3box = mk("g", { id: "m3box" }, m3);
+        mk("rect", { x: -95, y: -360, width: 190, height: 360, fill: "#141418", stroke: "#34343F", "stroke-width": 2 }, m3box);
+        mk("rect", { x: -95, y: -362, width: 190, height: 4, fill: "#8B5CF6" }, m3box);
+        mk("line", { x1: -60, y1: -40, x2: -60, y2: -330, stroke: "#8B5CF6", "stroke-opacity": 0.3, "stroke-width": 1.5 }, m3box);
+        mk("line", { x1: 60, y1: -40, x2: 60, y2: -330, stroke: "#8B5CF6", "stroke-opacity": 0.3, "stroke-width": 1.5 }, m3box);
+        var t3 = mk("text", { class: "ml", x: 0, y: -120 }, m3box); t3.textContent = "HyperFrames";
+        var c3 = diamond(m3, "m3core", -250);
+        mk("path", { d: "M-15 -15 h30 v30 h-30 z M-7 -7 h14 v14 h-14 z", fill: "none", stroke: "#10B981", "stroke-width": 2.4, "stroke-linejoin": "round" }, c3);
+
+        // world reveal + scroll chain
+        gsap.set("#world", { opacity: 0 });
+        tl.to("#world", { opacity: 1, duration: 0.3, ease: "power2.out" }, 5.3);
+        tl.fromTo("#w", { x: 0 }, { x: -5400, duration: 4.5, ease: e3 }, 5.5);
+        tl.fromTo("#w", { x: -5400 }, { x: -6550, duration: 1.5, ease: "power2.out", immediateRender: false }, 10.0);
+        tl.fromTo("#w", { x: -6550 }, { x: -7140, duration: 2.5, ease: "power1.in", immediateRender: false }, 11.5);
+        tl.fromTo("#w", { x: -7140 }, { x: -12140, duration: 0.95, ease: "power3.in", immediateRender: false }, 14.0);
+
+        // run → vault → run → slide → run → flip
+        cycle(5.66, tc1 - 0.45, 0.19, 0.17);
+        pose(tc1 - 0.45, 0.12, P.take, "power2.out");
+        tl.to("#runner", { y: 585, duration: 0.45, ease: "power2.out" }, tc1 - 0.45);
+        pose(tc1 - 0.3, 0.18, P.vault, "power2.out");
+        tl.to("#runner", { y: RY, duration: 0.3, ease: "power2.in" }, tc1);
+        pose(tc1 + 0.1, 0.16, P.land, "power2.out");
+        cycle(tc1 + 0.3, tc2 - 0.55, 0.15, 0.14);
+        pose(tc2 - 0.55, 0.2, P.slide, "power3.out");
+        tl.to("#runner", { y: RS, duration: 0.2, ease: "power3.in" }, tc2 - 0.55);
+        tl.fromTo("#slideTrail", { opacity: 0, scaleX: 0 }, { opacity: 0.8, scaleX: 1, duration: 0.25, ease: "expo.out", immediateRender: false }, tc2 - 0.4);
+        tl.to("#slideTrail", { opacity: 0, duration: 0.2, ease: "power2.in" }, tc2 + 0.3);
+        pose(tc2 + 0.35, 0.2, P.land, "power3.out");
+        tl.to("#runner", { y: RY, duration: 0.2, ease: "power3.out" }, tc2 + 0.35);
+        cycle(tc2 + 0.55, tc3 - 0.5, 0.13, 0.12);
+        pose(tc3 - 0.5, 0.12, P.take, "power2.out");
+        tl.to("#runner", { y: 570, duration: 0.45, ease: "power2.out" }, tc3 - 0.45);
+        tl.to("#runner", { y: RY, duration: 0.38, ease: "power2.in" }, tc3);
+        tl.to("#runnerR", { rotation: 360, duration: 0.8, ease: "power2.inOut" }, tc3 - 0.42);
+        tl.set("#runnerR", { rotation: 0 }, tc3 + 0.39);
+        pose(tc3 - 0.38, 0.16, P.tuck, "power2.out");
+        pose(tc3 + 0.12, 0.2, P.land, "power2.out");
+        // sprint on, then bullet-time stride slows (below)
+        cycle(tc3 + 0.45, 11.2, 0.12, 0.14);
+
+        // looting — orbs fly into the chest core, power evolves
+        function loot(n, tc, coreY, Wx, cx, cy) {
+          var t0 = tc - 0.2, sx = Wx + X(t0);
+          gsap.set("#orb" + n, { x: sx, y: coreY, scale: 0, opacity: 0, transformOrigin: "0 0" });
+          gsap.set("#abs" + n, { x: cx, y: cy, opacity: 0, transformOrigin: "0 0" });
+          tl.to("#orb" + n, { scale: 1.2, opacity: 1, duration: 0.12, ease: "back.out(2)" }, t0);
+          tl.to("#orb" + n, { x: cx, y: cy, duration: 0.22, ease: "power3.in" }, t0 + 0.1);
+          tl.to("#orb" + n, { scale: 0, opacity: 0, duration: 0.1, ease: "power2.in" }, t0 + 0.3);
+          tl.fromTo("#abs" + n, { scale: 0.3, opacity: 0.9 }, { scale: 3.4, opacity: 0, duration: 0.55, ease: "expo.out", immediateRender: false }, t0 + 0.3);
+          tl.to("#m" + n + "core", { scale: 0, opacity: 0, duration: 0.18, ease: "power3.in" }, t0);
+          tl.to("#j_core", { scale: 2.6, duration: 0.12, ease: "power3.out" }, t0 + 0.3);
+          tl.to("#j_core", { scale: 1 + 0.45 * n, duration: 0.35, ease: "back.out(1.8)" }, t0 + 0.42);
+          tl.to("#cam", { x: -9, y: 7, duration: 0.06, ease: "power2.out" }, t0 + 0.3);
+          tl.to("#cam", { x: 0, y: 0, duration: 0.3, ease: "power3.out" }, t0 + 0.36);
+        }
+        loot(1, tc1, 560, W1, 668, 535);
+        loot(2, tc2, 678, W2, 592, 779);
+        loot(3, tc3, 578, W3, 652, 580);
+        tl.to("#auraV", { opacity: 0.45, scale: 1.25, duration: 0.5, ease: "power3.out" }, tc1 + 0.1);
+        tl.to("#auraV", { opacity: 0.6, scale: 1.5, duration: 0.5, ease: "power3.out" }, tc2 + 0.1);
+        tl.to("#runner .lg", { stroke: "#10B981", strokeOpacity: 0.6, duration: 0.45, ease: "power2.out" }, tc3 + 0.1);
+        tl.to("#auraE", { opacity: 0.7, scale: 1.2, duration: 0.5, ease: "power3.out" }, tc3 + 0.1);
+        // monolith husks dim after looting
+        tl.to("#m3box", { opacity: 0.12, duration: 0.25, ease: "power3.in" }, tc3 + 0.05);
+
+        // camera work through the sprint
+        tl.to("#cam", { rotation: -2.2, scale: 1.06, y: 16, duration: 0.3, ease: "power3.out" }, tc2 - 0.5);
+        tl.to("#cam", { rotation: 0, scale: 1, y: 0, duration: 0.4, ease: "power3.inOut" }, tc2 + 0.4);
+        tl.to("#cam", { scale: 1.1, duration: 0.3, ease: "power2.out" }, tc3 - 0.38);
+        tl.to("#cam", { scale: 1, duration: 0.5, ease: "power3.inOut" }, tc3 + 0.4);
+
+        // loot chips — fast in, settle, punchy exit
+        tl.fromTo("#chipbox1", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 7.05);
+        tl.fromTo("#chip1", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power3.out" }, 7.05);
+        tl.fromTo("#chipbox2", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 8.35);
+        tl.fromTo("#chip2", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power3.out" }, 8.35);
+        tl.fromTo("#chipbox3", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 9.5);
+        tl.fromTo("#chip3", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power3.out" }, 9.5);
+        tl.to("#chip1", { opacity: 0, duration: 0.15, ease: "power3.in" }, 11.2);
+        tl.to("#chip2", { opacity: 0, duration: 0.15, ease: "power3.in" }, 11.28);
+        tl.to("#chip3", { opacity: 0, duration: 0.15, ease: "power3.in" }, 11.36);
+        tl.to("#chipbox1", { opacity: 0, x: -40, duration: 0.18, ease: "power3.in" }, 11.2);
+        tl.to("#chipbox2", { opacity: 0, x: -40, duration: 0.18, ease: "power3.in" }, 11.28);
+        tl.to("#chipbox3", { opacity: 0, x: -40, duration: 0.18, ease: "power3.in" }, 11.36);
+
+        /* ═══════════════════ speed streaks ═══════════════════ */
+        var stG = q("#streakG"), rsk = rng(99);
+        function streak(t, dur, len, y, w, col, op) {
+          var e = mk("rect", { x: 0, y: y, width: len, height: w, rx: w / 2, fill: col, "fill-opacity": op }, stG);
+          gsap.set(e, { x: 1960 });
+          tl.to(e, { x: -len - 40, duration: dur, ease: "power1.inOut" }, t);
+        }
+        var tt2, kk;
+        for (tt2 = 5.8; tt2 < 10.0; tt2 += 0.2) {
+          kk = (tt2 - 5.8) / 4.2;
+          streak(tt2, lerp(0.9, 0.34, kk), lerp(260, 820, kk) * (0.6 + rsk() * 0.8), 90 + rsk() * 700, 2 + rsk() * 2, rsk() < 0.6 ? "#F4F4F6" : "#8B5CF6", lerp(0.1, 0.28, kk));
+          if (kk > 0.4) streak(tt2 + 0.07, lerp(0.9, 0.34, kk), lerp(260, 820, kk) * (0.6 + rsk() * 0.8), 90 + rsk() * 700, 2 + rsk() * 2, "#8B5CF6", 0.3);
+        }
+        for (tt2 = 10.0; tt2 < 11.15; tt2 += 0.09) streak(tt2, 0.3, 700 + rsk() * 500, 70 + rsk() * 720, 2 + rsk() * 3, rsk() < 0.5 ? "#F4F4F6" : "#8B5CF6", 0.26);
+        for (tt2 = 11.4; tt2 < 13.4; tt2 += 0.55) streak(tt2, 1.7, 420 + rsk() * 200, 110 + rsk() * 640, 2, "#F4F4F6", 0.09);
+        for (tt2 = 14.02; tt2 < 14.82; tt2 += 0.03) streak(tt2, lerp(0.3, 0.18, (tt2 - 14.02) / 0.8), 900 + rsk() * 1000, 40 + rsk() * 760, 2 + rsk() * 3, rsk() < 0.65 ? "#F4F4F6" : "#10B981", 0.4);
+
+        /* ═══════════════════ BEAT 4 · 10.0 – 15.0 ═══════════════════ */
+        // the slop cluster
+        var slopG = mk("g", { id: "slop" }, Wg); gsap.set(slopG, { x: WC, y: GROUND, transformOrigin: "0 0" });
+        var rc = rng(31);
+        var cdef = [[-170, -60, 170, 120], [-50, -75, 210, 150], [85, -55, 170, 110], [205, -80, 150, 130], [-125, -190, 190, 130], [25, -215, 230, 140], [175, -200, 170, 120], [-35, -300, 170, 90], [125, -300, 200, 110], [-200, -290, 130, 140], [235, -295, 120, 100], [-65, -135, 200, 130]];
+        var cards = cdef.map(function (d, ci) {
+          var w = d[2], h = d[3], rot = (rc() < 0.5 ? -1 : 1) * (8 + rc() * 30);
+          var g = mk("g", { id: "cd" + ci }, slopG);
+          gsap.set(g, { x: d[0], y: d[1], rotation: rot, transformOrigin: "0 0" });
+          mk("rect", { x: -w / 2 + 10, y: -h / 2 - 8, width: w, height: h, rx: 10, fill: "none", stroke: "#8B5CF6", "stroke-opacity": 0.45, "stroke-width": 1.5 }, g);
+          mk("rect", { id: "cr" + ci, x: -w / 2, y: -h / 2, width: w, height: h, rx: 10, fill: "#141418", stroke: ci % 3 === 0 ? "#8B5CF6" : "#5B5B68", "stroke-width": 2.5 }, g);
+          for (var k = 0; k < 3; k++) mk("rect", { class: "sb sb" + ci, x: -w / 2 + 14, y: -h / 2 + 16 + k * (h - 30) / 3, width: (0.3 + rc() * 0.6) * (w - 28), height: 9, rx: 4, fill: "#F4F4F6", "fill-opacity": 0.22 }, g);
+          mk("circle", { cx: w / 2 - 24, cy: -h / 2 + 22, r: 9, fill: "#8B5CF6", "fill-opacity": 0.6 }, g);
+          return { i: ci, cx: d[0], cy: d[1], w: w, h: h, rot: rot };
+        });
+        // jitter — fast and nasty while threatening, then bullet-time sluggish
+        var rj = rng(77);
+        cards.forEach(function (c) {
+          var tj;
+          for (tj = 10.1; tj < 11.2; tj += 0.08) tl.set("#cd" + c.i, { x: c.cx + (rj() - 0.5) * 20, y: c.cy + (rj() - 0.5) * 16, rotation: c.rot + (rj() - 0.5) * 12 }, tj);
+          for (tj = 11.3; tj < 11.85; tj += 0.27) tl.set("#cd" + c.i, { x: c.cx + (rj() - 0.5) * 8, y: c.cy + (rj() - 0.5) * 6, rotation: c.rot + (rj() - 0.5) * 5 }, tj);
+        });
+        // glitch bars in screen space
+        var gG = q("#glitchG"), rg = rng(55), gb = [];
+        for (i = 0; i < 14; i++) { var b = mk("rect", { x: 0, y: 0, width: 100, height: 6 + rg() * 10, fill: i % 2 ? "#8B5CF6" : "#F4F4F6", opacity: 0 }, gG); gsap.set(b, { transformOrigin: "0 0" }); gb.push(b); }
+        gb.forEach(function (b) {
+          for (var tg = 10.3; tg < 11.25; tg += 0.065) tl.set(b, { x: 900 + rg() * 800, y: 380 + rg() * 450, scaleX: 0.5 + rg() * 3, opacity: rg() < 0.55 ? 0.28 : 0 }, tg);
+          tl.set(b, { opacity: 0 }, 11.25);
+        });
+
+        // time warps — letterbox, rings, slowed stride
+        tl.to("#lbT", { y: 76, duration: 0.35, ease: "power3.out" }, 11.2);
+        tl.to("#lbB", { y: -76, duration: 0.35, ease: "power3.out" }, 11.2);
+        gsap.set("#bt1", { x: 660, y: 610, transformOrigin: "0 0" });
+        gsap.set("#bt2", { x: 660, y: 610, transformOrigin: "0 0" });
+        tl.fromTo("#bt1", { scale: 0.2, opacity: 0.9 }, { scale: 32, opacity: 0, duration: 0.95, ease: "expo.out", immediateRender: false }, 11.25);
+        tl.fromTo("#bt2", { scale: 0.2, opacity: 0.7 }, { scale: 24, opacity: 0, duration: 0.8, ease: "expo.out", immediateRender: false }, 11.38);
+        tl.to("#cam", { scale: 1.12, rotation: -2.5, y: 14, duration: 0.7, ease: "expo.out" }, 11.25);
+        cycle(11.2, 13.45, 0.42, 0.52);
+        tl.to("#wash", { opacity: 0.07, duration: 0.5, ease: "power2.out" }, 11.7);
+
+        // the Jev Cognitive Gate — emerald scan sweep + reticle
+        var ret = mk("g", { id: "reticle" }, slopG); gsap.set(ret, { x: 0, y: -190, opacity: 0, transformOrigin: "0 0" });
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
+          mk("path", { d: "M" + (s[0] * 300) + " " + (s[1] * 205 - s[1] * 56) + " V" + (s[1] * 205) + " H" + (s[0] * 300 - s[0] * 56), fill: "none", stroke: "#10B981", "stroke-width": 4, "stroke-linecap": "round" }, ret);
+        });
+        tl.fromTo("#reticle", { opacity: 0, scale: 1.35 }, { opacity: 1, scale: 1, duration: 0.45, ease: "expo.out" }, 11.65);
+        tl.to("#reticle", { opacity: 0, scale: 0.85, duration: 0.2, ease: "power3.in" }, 13.0);
+
+        gsap.set("#scan", { x: -200, transformOrigin: "0 0" });
+        tl.to("#scan", { x: 2300, duration: 1.0, ease: "power2.inOut" }, 11.9);
+        function scanX(t) { return -200 + 2500 * pw2io(clamp((t - 11.9) / 1.0, 0, 1)); }
+        // slop snaps to order as the beam crosses it
+        cards.forEach(function (c) {
+          var lo = 11.9, hi = 12.9, m, sxc = function (tm) { return WC + X(tm) + c.cx; };
+          for (var it = 0; it < 40; it++) { m = (lo + hi) / 2; if (scanX(m) < sxc(m)) lo = m; else hi = m; }
+          var ts2 = hi - 0.04, col2 = c.i % 4, row2 = Math.floor(c.i / 4);
+          tl.to("#cd" + c.i, { x: -165 + col2 * 110, y: -280 + row2 * 105, rotation: 0, scaleX: 100 / c.w, scaleY: 86 / c.h, duration: 0.45, ease: "back.out(1.2)" }, ts2);
+          tl.to("#cr" + c.i, { stroke: "#10B981", duration: 0.25, ease: "power2.out" }, ts2);
+          tl.to(".sb" + c.i, { fillOpacity: 0.7, duration: 0.3, ease: "power2.out" }, ts2 + 0.1);
+          // …then folds flat into the booster pad
+          tl.to("#cd" + c.i, { x: -220 + c.i * 40 + 20, y: -14, scaleY: 0.1, scaleX: 36 / c.w, opacity: 0, duration: 0.5, ease: "power3.inOut" }, 13.0 + c.i * 0.012);
+        });
+        // booster pad
+        var padG = mk("g", { id: "pad" }, Wg); gsap.set(padG, { x: WC, y: GROUND, opacity: 0, scaleY: 0, transformOrigin: "0 0" });
+        mk("ellipse", { id: "padGlow", cx: 0, cy: 0, rx: 290, ry: 44, fill: "#10B981", "fill-opacity": 0.2 }, padG);
+        mk("rect", { x: -230, y: -28, width: 460, height: 28, rx: 6, fill: "#0E1B16", stroke: "#10B981", "stroke-width": 2.6 }, padG);
+        mk("rect", { x: -228, y: -29, width: 456, height: 3, fill: "#F4F4F6", "fill-opacity": 0.5 }, padG);
+        var chevs = [];
+        for (i = 0; i < 5; i++) chevs.push(mk("path", { id: "chv" + i, d: "M-9 -22 L5 -14 L-9 -6", fill: "none", stroke: "#10B981", "stroke-width": 4.5, "stroke-linecap": "round", "stroke-linejoin": "round", transform: "translate(" + (-150 + i * 75) + " 0)" }, padG));
+        mk("rect", { id: "padBeam", x: -70, y: -760, width: 140, height: 760, fill: "#10B981", "fill-opacity": 0 }, padG);
+        tl.to("#pad", { opacity: 1, scaleY: 1, duration: 0.4, ease: "back.out(1.2)" }, 13.25);
+        for (i = 0; i < 5; i++) {
+          tl.fromTo("#chv" + i, { strokeOpacity: 0.25 }, { strokeOpacity: 1, duration: 0.2, ease: "power2.out" }, 13.5 + i * 0.08);
+          tl.to("#chv" + i, { strokeOpacity: 0.5, duration: 0.25, ease: "sine.inOut" }, 13.95 + i * 0.03);
+          tl.to("#chv" + i, { strokeOpacity: 1, duration: 0.12, ease: "power2.out" }, 14.0 + i * 0.02);
+        }
+        // runner steps up, crouches, launches
+        tl.to("#runner", { y: RY - 26, duration: 0.15, ease: "power2.out" }, 13.5);
+        pose(13.5, 0.3, P.land, "power2.out");
+        pose(13.85, 0.25, P.crouch, "power3.in");
+        tl.to("#runner", { y: RY - 6, duration: 0.25, ease: "power3.in" }, 13.85);
+        tl.to("#lbT", { y: 0, duration: 0.25, ease: "power3.in" }, 14.65);
+        tl.to("#lbB", { y: 0, duration: 0.25, ease: "power3.in" }, 14.65);
+        gsap.set("#shock1", { transformOrigin: "660px 826px" });
+        gsap.set("#shock2", { transformOrigin: "660px 826px" });
+        tl.fromTo("#shock1", { scale: 0.4, opacity: 1 }, { scale: 14, opacity: 0, duration: 0.7, ease: "expo.out", immediateRender: false }, 14.0);
+        tl.fromTo("#shock2", { scale: 0.4, opacity: 0.8 }, { scale: 9, opacity: 0, duration: 0.55, ease: "expo.out", immediateRender: false }, 14.08);
+        tl.to("#padBeam", { fillOpacity: 0.34, duration: 0.12, ease: "power2.out" }, 14.0);
+        tl.to("#padBeam", { fillOpacity: 0, duration: 0.45, ease: "power3.out" }, 14.12);
+        // camera: slow push in bullet-time, impact, then supersonic pull
+        tl.to("#cam", { scale: 1.16, rotation: -1.5, duration: 2.05, ease: "power1.inOut" }, 11.95);
+        tl.to("#cam", { scale: 1.08, rotation: 0, y: 22, duration: 0.14, ease: "power3.out" }, 14.0);
+        tl.to("#cam", { scale: 0.96, y: 0, duration: 0.8, ease: "power3.in" }, 14.14);
+        // launch — dive into supersonic
+        pose(14.1, 0.3, P.dive, "power3.out");
+        tl.to("#runnerR", { rotation: 78, duration: 0.35, ease: "power3.out" }, 14.1);
+        tl.to("#runner", { x: 1000, y: 430, duration: 0.65, ease: "power3.in" }, 14.1);
+        // apex transcendence — Runner collapses to a single point of light
+        tl.to("#runner", { x: 960, y: 340, scale: 0.4, duration: 0.22, ease: "power3.in" }, 14.75);
+        tl.to("#auraE", { opacity: 1, scale: 2.2, duration: 0.5, ease: "power3.in" }, 14.4);
+
+        // HUD — Jev reports
+        gsap.set("#hudCard", { opacity: 0, x: 60 });
+        tl.to("#hudCard", { opacity: 1, x: 0, duration: 0.5, ease: "expo.out" }, 11.8);
+        tl.fromTo("#hudT", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 11.9);
+        tl.fromTo("#hud1", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 12.2);
+        tl.fromTo("#hud2", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 12.55);
+        tl.fromTo("#hud3", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 12.95);
+        gsap.set(".hchk", { opacity: 0, scale: 0.4, transformOrigin: "50% 50%" });
+        tl.to(".hchk", { opacity: 1, scale: 1, duration: 0.35, stagger: 0.37, ease: "back.out(1.6)" }, 12.25);
+        tl.to("#hudT", { opacity: 0, x: 20, duration: 0.18, ease: "power3.in" }, 14.8);
+        tl.to("#hud1", { opacity: 0, x: 20, duration: 0.18, ease: "power3.in" }, 14.8);
+        tl.to("#hud2", { opacity: 0, x: 20, duration: 0.18, ease: "power3.in" }, 14.8);
+        tl.to("#hud3", { opacity: 0, x: 20, duration: 0.18, ease: "power3.in" }, 14.8);
+        tl.to("#hudCard", { opacity: 0, x: 40, duration: 0.18, ease: "power3.in" }, 14.8);
+        tl.to("#wash", { opacity: 0, duration: 0.3, ease: "power2.in" }, 14.6);
+
+        /* ═══════════════════ BEAT 5 · 15.0 – 20.0 ═══════════════════ */
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power3.in" }, 14.84);
+        tl.set("#cam", { scale: 1, x: 0, y: 0, rotation: 0 }, 14.99);
+        tl.to("#flash", { opacity: 0, duration: 0.6, ease: "power2.out" }, 14.99);
+
+        gsap.set("#crystal", { x: 960, y: 340, scale: 0.2, rotation: -90, opacity: 0, transformOrigin: "0 0" });
+        gsap.set(".facet", { opacity: 0 });
+        gsap.set(".cedge", { strokeDashoffset: 1 });
+        gsap.set("#hair", { svgOrigin: "960 686", scaleX: 0 });
+        gsap.set("#corners", { opacity: 0 });
+        tl.to("#crystal", { opacity: 1, scale: 1, rotation: 0, duration: 1.0, ease: "expo.out" }, 14.99);
+        tl.to(".cedge", { strokeDashoffset: 0, duration: 0.9, stagger: 0.05, ease: "power3.out" }, 15.0);
+        tl.to(".facet", { opacity: 1, duration: 0.5, stagger: 0.06, ease: "power2.out" }, 15.15);
+        gsap.set("#shine", { x: -200 });
+        tl.to("#shine", { opacity: 1, duration: 0.2, ease: "power2.out" }, 16.0);
+        tl.to("#shine", { x: 260, duration: 0.9, ease: "power2.inOut" }, 16.0);
+        tl.to("#shine", { opacity: 0, duration: 0.25, ease: "power2.in" }, 16.75);
+        tl.to("#hair", { scaleX: 1, duration: 0.9, ease: "expo.out" }, 15.4);
+        tl.to("#corners", { opacity: 1, duration: 0.6, ease: "power2.out" }, 15.5);
+
+        tl.fromTo("#title", { opacity: 0, y: 30, scale: 1.06 }, { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "expo.out" }, 15.55);
+        tl.fromTo("#sub", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 16.2);
+        gsap.set("#badge", { opacity: 0, y: 16 });
+        tl.to("#badge", { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 16.8);
+        tl.fromTo("#badgeText", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power3.out" }, 16.8);
+        gsap.set("#term", { opacity: 0 });
+        tl.to("#term", { opacity: 1, duration: 0.5, ease: "power2.out" }, 17.2);
+        // blinking terminal cursor — discrete, deterministic
+        var bt;
+        for (bt = 17.7; bt < 20; bt += 1.06) {
+          tl.set("#cur", { opacity: 0 }, bt);
+          tl.set("#cur", { opacity: 1 }, bt + 0.53);
+        }
+        // serene hold — an almost imperceptible push
+        tl.to("#cam", { scale: 1.012, duration: 5.0, ease: "sine.inOut" }, 15.0);
+
+        tl.set(["#worldBox", "#streaksBox", "#actorsBox", "#fxBox"], { opacity: 0 }, 14.99);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

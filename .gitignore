@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# HyperFrames internal caches and builds
+.hyperframes/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local log files
+*.log
+snap_help.txt
+
+# Silent draft render (keep demo-video-sound.mp4)
+renders/demo-video.mp4
+
+# OS files
+.DS_Store
+Thumbs.db
