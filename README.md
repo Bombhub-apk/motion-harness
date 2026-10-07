@@ -171,3 +171,9 @@ motion-harness/
 ## 📄 License
 
 MIT License. Designed and engineered for the modern autonomous AI developer community.
+
+---
+
+## ✍️ Author & Credits
+
+Designed, architected, and developed with passion by **[MadGod](https://github.com/Bombhub-apk)** ([@mad-helpers](https://github.com/mad-helpers)).
