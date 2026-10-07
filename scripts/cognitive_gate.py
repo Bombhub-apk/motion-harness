@@ -73,9 +73,12 @@ def extract_cksd_from_html(html_path: Path) -> dict:
             exit_t = total_duration
 
         hold_time = max(0.0, exit_t - settle_t)
+        min_required_hold = max(0.8, round(node["word_count"] * 0.3, 2))
         node["settle_t"] = round(settle_t, 2)
         node["exit_t"] = round(exit_t, 2)
         node["hold_sec"] = round(hold_time, 2)
+        node["min_required_hold"] = round(min_required_hold, 2)
+        node["meets_threshold"] = round(hold_time, 2) >= round(min_required_hold, 2)
         node["words_per_sec"] = round(node["word_count"] / max(0.1, hold_time), 2)
 
     # 4. Motion metrics (anti-slop checks)

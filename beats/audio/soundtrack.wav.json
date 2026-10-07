@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "audio": "audio/soundtrack.wav",
+  "beats": [
+    {
+      "time": 2.464,
+      "strength": 0.676
+    },
+    {
+      "time": 3.563,
+      "strength": 0.484
+    },
+    {
+      "time": 3.957,
+      "strength": 0.4
+    },
+    {
+      "time": 4.331,
+      "strength": 0.861
+    },
+    {
+      "time": 5.504,
+      "strength": 0.691
+    },
+    {
+      "time": 5.621,
+      "strength": 0.718
+    },
+    {
+      "time": 6.016,
+      "strength": 0.624
+    },
+    {
+      "time": 6.517,
+      "strength": 0.699
+    },
+    {
+      "time": 7.008,
+      "strength": 0.692
+    },
+    {
+      "time": 7.52,
+      "strength": 0.675
+    },
+    {
+      "time": 7.765,
+      "strength": 0.535
+    },
+    {
+      "time": 8.011,
+      "strength": 0.634
+    },
+    {
+      "time": 8.288,
+      "strength": 0.541
+    },
+    {
+      "time": 8.501,
+      "strength": 0.659
+    },
+    {
+      "time": 9.003,
+      "strength": 0.682
+    },
+    {
+      "time": 9.504,
+      "strength": 0.654
+    },
+    {
+      "time": 9.749,
+      "strength": 0.55
+    },
+    {
+      "time": 10.037,
+      "strength": 0.458
+    },
+    {
+      "time": 10.784,
+      "strength": 0.443
+    },
+    {
+      "time": 11.2,
+      "strength": 0.812
+    },
+    {
+      "time": 11.488,
+      "strength": 0.785
+    },
+    {
+      "time": 11.637,
+      "strength": 0.69
+    },
+    {
+      "time": 11.787,
+      "strength": 0.6
+    },
+    {
+      "time": 12.235,
+      "strength": 0.618
+    },
+    {
+      "time": 13.259,
+      "strength": 0.745
+    },
+    {
+      "time": 14.005,
+      "strength": 0.906
+    },
+    {
+      "time": 14.251,
+      "strength": 0.784
+    },
+    {
+      "time": 14.741,
+      "strength": 0.615
+    },
+    {
+      "time": 15.029,
+      "strength": 1
+    }
+  ]
+}
