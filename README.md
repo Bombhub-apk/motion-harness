@@ -12,11 +12,12 @@
 
 ## 📽️ Showcase: "The Awakened Script" (20-Second Kinetic Short)
 
-This entire 20-second 1080p 60fps kinetic film was authored programmatically by **Claude Sonnet** inside the **Motion Harness**, passing both mechanical headless browser checks and the **Jev Cognitive Saliency Gate**.
+> ⚡ **Directed & Produced in Under 15 Minutes:**  
+> This entire 20-second 1080p 60fps kinetic film was authored, animated, beat-synchronized, and validated in **under 15 minutes** by **Claude Sonnet** running natively inside **Google Antigravity** (not Claude Code!). It executed end-to-end within this harness, passing both headless Chromium audits and the **Jev Cognitive Saliency Gate**.
 
 ![Contact Sheet](snapshots/contact-sheet.jpg)
 
-> 📹 **Full Video with Audio:** [Download / View `demo-video-sound.mp4`](renders/demo-video-sound.mp4) (10.8 MB, 1080p, Stereo Sound).
+> 📹 **Full Master Video with Sound:** [Download / View `demo-video-sound.mp4`](renders/demo-video-sound.mp4) (10.8 MB, 1080p, Stereo Sound).
 
 ---
 
@@ -128,6 +129,18 @@ Render full 1080p 60fps video with high-fidelity audio:
 ```bash
 npm run render
 ```
+
+---
+
+## 🌍 Universal & Cross-Environment Support
+
+Motion Harness is architected to run anywhere. While this showcase was created and verified inside **Google Antigravity**, the harness is 100% platform-agnostic and ready for any AI or developer workflow:
+
+- **Google Antigravity:** Native skill integration via `SKILL.md` and `@motion-harness`.
+- **Claude Code:** Standard agent skill support (`npx skills add mad-helpers/motion-harness`).
+- **Cursor / VS Code:** Interactive studio previews (`npm run dev`) and automated headless audits.
+- **Headless CI/CD & GitHub Actions:** Automated regression testing with `npm run check`.
+- **Any Terminal:** Pure, standard Node.js & Python dependencies with zero vendor lock-in.
 
 ---
 
