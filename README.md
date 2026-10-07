@@ -15,9 +15,13 @@
 > ⚡ **Directed & Produced in Under 15 Minutes:**  
 > This entire 20-second 1080p 60fps kinetic film was authored, animated, beat-synchronized, and validated in **under 15 minutes** by **Claude Sonnet** running natively inside **Google Antigravity** (not Claude Code!). It executed end-to-end within this harness, passing both headless Chromium audits and the **Jev Cognitive Saliency Gate**.
 
+[![Watch Master Video](https://img.shields.io/badge/▶️_Watch_Master_Video-GitHub_Player-red?style=for-the-badge)](https://github.com/mad-helpers/motion-harness/blob/main/renders/demo-video-sound.mp4)
+[![Download Master MP4](https://img.shields.io/badge/⬇️_Direct_Download_MP4-10.8_MB-blue?style=for-the-badge)](https://github.com/mad-helpers/motion-harness/releases/download/v1.0.0/demo-video-sound.mp4)
+
 ![Contact Sheet](snapshots/contact-sheet.jpg)
 
-> 📹 **Full Master Video with Sound:** [Download / View `demo-video-sound.mp4`](renders/demo-video-sound.mp4) (10.8 MB, 1080p, Stereo Sound).
+> 📹 **Direct Stream / Play:** [Click here to play `demo-video-sound.mp4` directly in GitHub](https://github.com/mad-helpers/motion-harness/blob/main/renders/demo-video-sound.mp4)  
+> 📦 **High-Speed CDN Download:** [Download from GitHub Release v1.0.0](https://github.com/mad-helpers/motion-harness/releases/download/v1.0.0/demo-video-sound.mp4)
 
 ---
 
